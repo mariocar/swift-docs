@@ -12,7 +12,7 @@ Conteúdo:
    :maxdepth: 2
 
    hardware
-
+   install
 
 Indices and tables
 ==================
