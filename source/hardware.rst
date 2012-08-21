@@ -66,6 +66,5 @@ Hardware Utilizado
 
 
 .. highlight:: bash
-#!/bin/bash
-
-printf "Hello, World %s\n", "cedo"
+   #!/bin/bash
+   printf "Hello, World %s\n", "cedo"
