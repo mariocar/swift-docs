@@ -43,7 +43,7 @@ Hardware Utilizado
    # this is a comment
    # This is a comment also
 
-.. centered:: LICENSE AGREEMENT
+.. centered:: lICENSE AGREEMENT
 
 .. hlist::
    :columns: 3
