@@ -42,8 +42,7 @@ Hardware Utilizado
 	OpenStack Object Storage Administration Manual
 
 .. rubric:: Rubrica
-   Paragraph
-   Added git repo
+   Paragraph Added git repo
 
 .. code-block:: bash
    :emphasize-lines: 2,3
