@@ -1,0 +1,13 @@
+#!/bin/bash
+
+for zone in `seq 5`;do
+	ZONE=$zone
+	STORAGE_LOCAL_NET_IP=192.168.33.$((25+${zone}))
+	WEIGHT=100               # relative weight (higher for bigger/faster disks)
+	swift-ring-builder account.builder add z$ZONE-$STORAGE_LOCAL_NET_IP:6002/sda1 $WEIGHT
+	swift-ring-builder container.builder add z$ZONE-$STORAGE_LOCAL_NET_IP:6001/sda1 $WEIGHT
+	swift-ring-builder object.builder add z$ZONE-$STORAGE_LOCAL_NET_IP:6000/sda1 $WEIGHT
+	swift-ring-builder account.builder add z$ZONE-$STORAGE_LOCAL_NET_IP:6005/sdb1 $WEIGHT
+	swift-ring-builder container.builder add z$ZONE-$STORAGE_LOCAL_NET_IP:6004/sdb1 $WEIGHT
+	swift-ring-builder object.builder add z$ZONE-$STORAGE_LOCAL_NET_IP:6003/sdb1 $WEIGHT
+done

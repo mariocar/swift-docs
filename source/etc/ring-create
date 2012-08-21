@@ -1,0 +1,8 @@
+#!/bin/bash
+export RING_POWER=21
+export RING_REPLICAS=3
+export RING_REPLICATIMES=1
+
+swift-ring-builder account.builder create $RING_POWER $RING_REPLICAS $RING_REPLICATIMES
+swift-ring-builder container.builder create $RING_POWER $RING_REPLICAS $RING_REPLICATIMES
+swift-ring-builder object.builder create $RING_POWER $RING_REPLICAS $RING_REPLICATIMES

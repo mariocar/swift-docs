@@ -1,0 +1,5 @@
+#!/bin/bash
+
+swift-ring-builder account.builder rebalance
+swift-ring-builder container.builder rebalance
+swift-ring-builder object.builder rebalance
