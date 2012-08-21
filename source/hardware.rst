@@ -1,8 +1,8 @@
 
 Hardware Utilizado
 ==================
-.. figure:: images/Swift_cumulus.png
-   Diagrama de implementação do Swift
+.. image:: images/Swift_cumulus.png
+   :scale: 50 %
 
 # Object-writer nodes
 
