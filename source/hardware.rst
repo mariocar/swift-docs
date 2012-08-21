@@ -1,17 +1,9 @@
 
 Hardware Utilizado
 ==================
-|
-|
-|
-|
-|
-| *  Diagrama *
-|
-|
-|
-|
-|
+.. figure:: images/Swift_cumulus.png
+   Diagrama de implementação do Swift
+
 # Object-writer nodes
 
   * 6x ProLiant BL460c G6  
