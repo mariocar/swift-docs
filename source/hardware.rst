@@ -45,9 +45,11 @@ Hardware Utilizado
    Paragraph
 
 .. code-block:: bash
-
+   :emphasize-lines: 2,3
    #!/bin/bash
    printf "Hello, World %s\n", "cedo"
+   # this is a comment
+   # This is a comment also
 
 .. centered:: LICENSE AGREEMENT
 
