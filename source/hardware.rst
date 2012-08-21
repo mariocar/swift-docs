@@ -22,9 +22,6 @@ Hardware Utilizado
      * 24GB RAM
      * 24 CPUs Xeon(R) L5640 @ 2.27GHz
 
-.. math::
-
-  α_t(i) = P(O_1, O_2, … O_t, q_t = S_i λ)
 
 
 .. topic:: Topic Title
