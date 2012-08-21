@@ -44,6 +44,11 @@ Hardware Utilizado
 .. rubric:: Rubrica
    Paragraph
 
+.. highlight:: c
+
+   #!/bin/bash
+   printf "Hello, World %s\n", "cedo"
+
 .. centered:: LICENSE AGREEMENT
 
 .. hlist::
@@ -53,7 +58,7 @@ Hardware Utilizado
    * short items
    * that should be
    * displayed
-   * horrizontally
+   * Horrizontally
 
 .. productionlist::
    try_stmt: try1_stmt | try2_stmt
@@ -65,7 +70,3 @@ Hardware Utilizado
             : "finally" ":" `suite`
 
 
-.. highlight:: c
-
-   #!/bin/bash
-   printf "Hello, World %s\n", "cedo"
