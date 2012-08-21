@@ -2,7 +2,7 @@
 Hardware Utilizado
 ==================
 .. image:: images/Swift_cumulus.png
-   :scale: 50 %
+   :scale: 75 %
 
 # Object-writer nodes
 
