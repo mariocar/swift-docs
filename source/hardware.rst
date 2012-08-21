@@ -37,6 +37,7 @@ Hardware Utilizado
    Paragraph Added git repo
 
 .. code-block:: bash
+
    #!/bin/bash
    printf "Hello, World %s\n", "cedo"
    # this is a comment

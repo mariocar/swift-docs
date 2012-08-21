@@ -1,8 +1,7 @@
 Instalação do Swift
 ===================
 
-OBJECT-NODES:
--------------
+* OBJECT-NODES:
 
 Os object nodes foram instalados com o root filesystem sediado em uma LUN iSCSI, servida por um Filer de desenvolvimento (riofd06). Essa LUN contendo a instalação inicial do nó foi clonado em outras 6 LUNs, uma para cada nó "Object Storage". As LUNs foram criadas e mapeadas como a seguir, para os seus respectivos hosts:
 
