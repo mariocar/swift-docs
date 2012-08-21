@@ -1,4 +1,7 @@
 .. |reST| replace:: reStructuredText
+.. |Python| replace:: Python, *the* best language around
+.. _Python: http://www.python.org/
+
 .. header:: This space for rent.
    HEADER
 
@@ -27,6 +30,9 @@ Hardware Utilizado
      * 2x 300GB 10KRpm SAS HDD
      * 24GB RAM
      * 24 CPUs Xeon(R) L5640 @ 2.27GHz
+
+I recommend you try |Python|_.
+
 
 .. table:: Truth table for "not"
 
