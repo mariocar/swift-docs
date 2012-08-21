@@ -29,6 +29,9 @@ Hardware Utilizado
 .. warning::
     This is a warning
 
+.. DANGER::
+   Fudeu!
+
 .. seealso::
    `Openstack Swift - Documentation <http://docs.openstack.org/essex/openstack-object-storage/admin/content/>`_
 	OpenStack Object Storage Administration Manual
