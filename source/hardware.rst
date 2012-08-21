@@ -32,7 +32,7 @@ Hardware Utilizado
 .. ATTENTION::
    Fudeu!
 
-.. Mario::
+.. tip::
    Teste unknown tag
 
 .. seealso::
