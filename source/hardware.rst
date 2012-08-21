@@ -29,7 +29,7 @@ Hardware Utilizado
 .. warning::
     This is a warning
 
-.. DANGER::
+.. ATTENTION::
    Fudeu!
 
 .. Mario::
