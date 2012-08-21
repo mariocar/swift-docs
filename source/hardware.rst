@@ -8,6 +8,8 @@
 .. footer:: Footer text
    FOOTER
 
+.. comment dude
+
 Hardware Utilizado
 ==================
 .. image:: _static/Swift_cumulus.png
@@ -143,7 +145,9 @@ I recommend you try |Python|_.
 
    This paragraph might be rendered in a custom way.
 
-.. include:: /etc/passwd
+.. include:: passwd
+   :start-line: 0
+   :end-line: 1
 
 .. epigraph::
 
