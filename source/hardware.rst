@@ -44,7 +44,7 @@ Hardware Utilizado
 .. rubric:: Rubrica
    Paragraph
 
-.. code-block:: python
+.. code-block:: bash
 
    #!/bin/bash
    printf "Hello, World %s\n", "cedo"
