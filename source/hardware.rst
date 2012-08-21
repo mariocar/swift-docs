@@ -22,6 +22,13 @@ Hardware Utilizado
      * 24GB RAM
      * 24 CPUs Xeon(R) L5640 @ 2.27GHz
 
+.. sidebar:: Sidebar Title
+   :subtitle: Optional Sidebar Subtitle
+
+   Subsequent indented lines comprise
+   the body of the sidebar, and are
+   interpreted as body elements.
+
 .. topic:: Topic Title
 
     Subsequent indented lines comprise
