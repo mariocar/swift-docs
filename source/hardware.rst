@@ -22,6 +22,14 @@ Hardware Utilizado
      * 24GB RAM
      * 24 CPUs Xeon(R) L5640 @ 2.27GHz
 
+.. table:: Truth table for "not"
+
+   =====  =====
+     A    not A
+   =====  =====
+   False  True
+   True   False
+   =====  =====
 
 
 .. topic:: Topic Title
