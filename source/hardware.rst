@@ -1,7 +1,7 @@
 
 Hardware Utilizado
 ==================
-.. image:: Swift_cumulus.png
+.. image:: _static/Swift_cumulus.png
    :scale: 75 %
 
 # Object-writer nodes
@@ -37,7 +37,6 @@ Hardware Utilizado
    Paragraph Added git repo
 
 .. code-block:: bash
-   :emphasize-lines: 2,3
    #!/bin/bash
    printf "Hello, World %s\n", "cedo"
    # this is a comment
