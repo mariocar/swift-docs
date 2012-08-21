@@ -65,6 +65,6 @@ Hardware Utilizado
             : "finally" ":" `suite`
 
 
-.. highlight:: bash
+.. highlight:: guess
    #!/bin/bash
    printf "Hello, World %s\n", "cedo"
