@@ -44,7 +44,7 @@ Hardware Utilizado
 .. rubric:: Rubrica
    Paragraph
 
-.. highlight:: c
+.. highlight:: sh
 
    #!/bin/bash
    printf "Hello, World %s\n", "cedo"
