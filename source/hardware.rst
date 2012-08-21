@@ -53,7 +53,7 @@ Hardware Utilizado
    * short items
    * that should be
    * displayed
-   * horizontally
+   * horrizontally
 
 .. productionlist::
    try_stmt: try1_stmt | try2_stmt
