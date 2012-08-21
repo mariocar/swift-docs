@@ -40,4 +40,17 @@ Hardware Utilizado
 .. seealso::
    `Openstack Swift - Documentation <http://docs.openstack.org/essex/openstack-object-storage/admin/content/>`_
 	OpenStack Object Storage Administration Manual
-	
+
+.. rubric:: Rubrica
+   Paragraph
+
+.. centered:: LICENSE AGREEMENT
+
+.. hlist::
+   :columns: 3
+
+   * A list of
+   * short items
+   * that should be
+   * displayed
+   * horizontally
