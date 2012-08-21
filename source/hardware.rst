@@ -30,6 +30,6 @@ Hardware Utilizado
      * 24GB RAM
      * 24 CPUs Xeon(R) L5640 @ 2.27GHz
 
-.. nota::
+.. note::
     
     This is a note somehow
