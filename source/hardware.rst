@@ -32,6 +32,9 @@ Hardware Utilizado
 .. DANGER::
    Fudeu!
 
+.. Mario::
+   Teste unknown tag
+
 .. seealso::
    `Openstack Swift - Documentation <http://docs.openstack.org/essex/openstack-object-storage/admin/content/>`_
 	OpenStack Object Storage Administration Manual
