@@ -145,7 +145,7 @@ I recommend you try |Python|_.
 
    This paragraph might be rendered in a custom way.
 
-.. include:: passwd
+.. include:: etc/swift.conf
    :start-line: 0
    :end-line: 1
 

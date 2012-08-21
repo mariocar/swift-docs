@@ -1,3 +1,6 @@
+.. _Swift: etc/swift.conf
+
+
 Instalação do Swift
 ===================
 
@@ -15,6 +18,7 @@ Os object nodes foram instalados com o root filesystem sediado em uma LUN iSCSI,
 Nessa instalaçáo foi utilizado o "kickstart" (em riofb02a:/admfiler/2a/1/unix/tftpboot/pxelinux.cfg/centos6_64_SwiftWriter), para a instalação da LUN "golden", modelo para as demais. É basicamente uma instalação mínima com os pacotes e dependrências do Openstack Swift.
 
 * Configurações genericas do Swift
-  * /etc/swift
+
+  * /etc/swift Swift_
   
 * Configurações específicas
