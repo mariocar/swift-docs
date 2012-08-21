@@ -1,17 +1,17 @@
 
 Hardware Utilizado
 ==================
-
-
-
-
-
-  *  Diagrama *
-
-
-
-
-
+|
+|
+|
+|
+|
+| *  Diagrama *
+|
+|
+|
+|
+|
 # Object-writer nodes
 
   * 6x ProLiant BL460c G6  
