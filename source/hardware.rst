@@ -33,3 +33,11 @@ Hardware Utilizado
 .. note::
     
     This is a note somehow
+
+.. warning::
+    This is a warning
+
+.. seealso::
+   "Openstack Swift - Documentation <http://docs.openstack.org/essex/openstack-object-storage/admin/content/>"
+	OpenStack Object Storage Administration Manual
+	
