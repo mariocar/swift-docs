@@ -38,6 +38,6 @@ Hardware Utilizado
     This is a warning
 
 .. seealso::
-   "Openstack Swift - Documentation <http://docs.openstack.org/essex/openstack-object-storage/admin/content/>"
+   `Openstack Swift - Documentation <http://docs.openstack.org/essex/openstack-object-storage/admin/content/>`_
 	OpenStack Object Storage Administration Manual
 	
