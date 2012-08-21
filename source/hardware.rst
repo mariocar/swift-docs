@@ -63,3 +63,9 @@ Hardware Utilizado
             : ["finally" ":" `suite`]
    try2_stmt: "try" ":" `suite`
             : "finally" ":" `suite`
+
+
+.. highlight:: bash
+#!/bin/bash
+
+printf "Hello, World %s\n", "cedo"
