@@ -22,7 +22,7 @@ Nessa instalaçáo foi utilizado o "kickstart" (em riofb02a:/admfiler/2a/1/unix/
 * Configurações Swift
    * object-server
 
-.. line-block::
+.. code::
 
 	[DEFAULT]
 	bind_ip = 192.168.33.26
