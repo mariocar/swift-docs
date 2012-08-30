@@ -49,6 +49,11 @@ As interfaces de rede dos servidores foram configuradas como a seguir:
 
 	*eth1* - Interface de acesso privado - interconexão entre os |OBJS| e os |PROX| (192.168.33.0/24 - Estatica em função do IP na eth0)
 
+----------------
+**Proxy Nodes:**
+----------------
+
+
 -------------------
 Configurações Swift
 -------------------
