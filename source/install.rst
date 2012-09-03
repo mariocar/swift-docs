@@ -146,8 +146,18 @@ Proxy Nodes:
 ------------
 pacotes: openstack-swift-essex-proxy-essex-1.4.8-b3000, memcached-1.4.4-3.el6.x86_64
 
-Os proxy-nodes são os responsáveis por receber as requisições clientes do Swift. Pode-se ter tantos proxy-nodes quantos necessários em função da demanda, balanceados por um VIP. Todo tráfego é HTTP/HTTPS. Para fins de testes, os proxy-nodes implementados no LAB Cumulus, são balanceados por um Varnish, com cacheamento default em 120 segundos para _todos_os_objetos_ servidos, indiscriminadamente, pela interface de estáticos. Essa configuração visa amortecer quaisquer picos de acesso via interface de estáticos. Os acessos internos do Swift, via porta 8080, são apenas balanceados e nunca cacheados (pipe).
+Descrição:
+----------
 
+Os proxy-nodes são os responsáveis por receber as requisições clientes do Swift. Pode-se ter tantos proxy-nodes quantos necessários em função da demanda, balanceados por um VIP. Todo tráfego é HTTP/HTTPS. 
+
+Cacheamento automatico de estáticos:
+------------------------------------
+
+Para fins de testes, os proxy-nodes implementados no LAB Cumulus, são balanceados por um Varnish, com cacheamento default em 120 segundos para _todos_os_objetos_ servidos, indiscriminadamente, pela interface de estáticos. Essa configuração visa amortecer quaisquer picos de acesso via interface de estáticos. Os acessos internos do Swift, via porta 8080, são apenas balanceados e nunca cacheados (pipe).
+
+Cacheamento de metadados:
+-------------------------
 Para fins de cacheamento de meta-dados para uso interno, o Swift usa instâncias de "memcache" em cada um de seus nós proxy. Cada proxy deve ser configurado para "enxergar" os memcaches dos demais nós de modo a criar uma rede redundante de processos memcached.
 
 
@@ -254,7 +264,6 @@ Cada cluster Swift deve ter um "Unique Identifier" (swift_hash_path_suffix), que
 	CACHESIZE="4096"							<- Trade-off entre memória no servidor e acesso aos metadados.
 	OPTIONS=""
 
-
 --------------
 Tunnings do SO
 --------------
@@ -292,13 +301,20 @@ Os servidores de objetos tiveram suas configurações de BIOS setadas para privi
 	kernel.msgmni = 1024
 	kernel.sem = 1000 32000 32 512
 	kernel.shmmax = 2147483648
-	net.ipv4.tcp_syncookies = 0
 	net.ipv4.conf.all.arp_ignore = 2
 	net.ipv4.conf.all.arp_announce = 2
 	net.ipv4.tcp_tw_recycle = 1
 	net.ipv4.tcp_tw_reuse = 1
 	net.ipv4.tcp_syncookies = 0 			<- desligado nos Object Servers e ligado nos Proxy Servers
 	net.ipv4.tcp_max_syn_backlog = 8192
+
+.. _logging:
+
+Logging:
+--------
+
+blah blah
+
 
 
 .. _procedimentos_de_mudanca:
