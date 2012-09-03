@@ -1,5 +1,6 @@
 .. _Swift: .. include:: etc/swift.conf
 .. _XATTRS: http://docs.openstack.org/developer/swift/howto_installmultinode.html#configure-the-storage-nodes
+.. _SwiftStorageDocs: http://docs.openstack.org/developer/swift/howto_installmultinode.html#configure-the-storage-nodes
 .. _DOCL: http://docs.openstack.org/essex/openstack-compute/install/yum/content/ch_installing-openstack-object-storage.html
 .. |OBJS| replace:: Swift Object Servers
 .. |PROX| replace:: Swift Proxy Servers
@@ -8,81 +9,183 @@
 Instalação do Swift
 ===================
 
-O Swift foi instalado segundo a documentação em |DOCL|_
+O Swift foi instalado segundo a documentação em |DOCL|_. Os endpoints resultantes dessa instalação são: ::
+
+	https://swift.cumulus.dev.globoi.com/v1/AUTH_<tenant_id>/ 	(Interface de estáticos)
+	http://swift.cumulus.dev.globoi.com:8080/v1/AUTH_<tenant_id>/   (Interface Swift)
+
+As áreas de dados do Swift são designadas segundo os tenentes do Keystone. Cada "tenant" tem uma área discriminada pelo seu próprio UUID segundo a fórmula acima. Essas áreas podem ser divididas em "containers" (buckets, na terminologia AWS), e utilizadas para armazenamento de backups e conteúdo estático.
 
 --------------------------
 **Object Storage Nodes:**
 --------------------------
 
+Os Storage Nodes são os reais trabalhadores da infraestrutra do Swift. É neles que os dados de usuário e de configuração sáo armazenados e é neles que é garantida a redundância e disponibilidade dos dados.
+
+STORAGE
+-------
+
 Visando dedicar todo o storage local para uso pelo Swift, os object nodes foram instalados com o root filesystem sediado em uma LUN iSCSI, servida, para a cloud de LAB, pelo Filer de desenvolvimento (riofd06). Essa LUN contendo a instalação inicial do nó foi clonado em outras 6 LUNs, uma para cada "Object Storage". As LUNs foram clonadas e mapeadas como a seguir, para os seus respectivos hosts:
 
-LUN GOLDEN
-----------
-- riofd06:/vol/vol342/swift_obj_root (LUN Golden)
+.. compound::
 
-LUNs CLONE - ROOTFS
--------------------
-- riofd06:/vol/vol342/cittamp06lx06_root
-- riofd06:/vol/vol342/cittamp06lx07_root
-- riofd06:/vol/vol342/cittamp06lx08_root
-- riofd06:/vol/vol342/cittamp06lx09_root
-- riofd06:/vol/vol342/cittamp06lx10_root
-- riofd06:/vol/vol342/cittamp06lx11_root
+	LUN GOLDEN ::
 
-Nessa instalaçáo foi utilizado o "kickstart" (em riofb02a:/admfiler/2a/1/unix/tftpboot/pxelinux.cfg/centos6_64_SwiftWriter), para a instalação da LUN "golden", modelo para as demais. É basicamente uma instalação mínima de CentOS 6.3 x86_64, com os pacotes e dependências do Openstack Swift, na versão empacotada com a release Essex do Openstack (1.4.8).
+	- riofd06:/vol/vol342/swift_obj_root (LUN Golden)
+
+	LUNs CLONE - ROOTFS ::
+
+	- riofd06:/vol/vol342/cittamp06lx06_root
+	- riofd06:/vol/vol342/cittamp06lx07_root
+	- riofd06:/vol/vol342/cittamp06lx08_root
+	- riofd06:/vol/vol342/cittamp06lx09_root
+	- riofd06:/vol/vol342/cittamp06lx10_root
+	- riofd06:/vol/vol342/cittamp06lx11_root
+
+As LUNs foram mapeadas para "igroups" (agrupamento de initiators iSCSI, no filer) contendo apenas o servidor "dono" da LUN e nomeado segundo o hostname do servidor: ::
+
+    cittamp06lx06 (iSCSI) (ostype: linux):
+        iqn.1994-05.com.redhat:cittamp06lx06 (logged in on: vif1)
+    cittamp06lx07 (iSCSI) (ostype: linux):
+        iqn.1994-05.com.redhat:cittamp06lx07 (logged in on: vif1)
+    cittamp06lx08 (iSCSI) (ostype: linux):
+        iqn.1994-05.com.redhat:cittamp06lx08 (logged in on: vif1)
+    cittamp06lx09 (iSCSI) (ostype: linux):
+        iqn.1994-05.com.redhat:cittamp06lx09 (logged in on: vif1)
+    cittamp06lx10 (iSCSI) (ostype: linux):
+        iqn.1994-05.com.redhat:cittamp06lx10 (logged in on: vif1)
+    cittamp06lx11 (iSCSI) (ostype: linux):
+        iqn.1994-05.com.redhat:cittamp06lx11 (logged in on: vif1)
+
+        LUN GOLDEN ::
+
+Status final das LUNs após o mapeamento: ::
+
+	LUN path                            Mapped to          LUN ID  Protocol
+	-----------------------------------------------------------------------
+	/vol/vol342/cittamp06lx06_root      cittamp06lx06           0     iSCSI
+	/vol/vol342/cittamp06lx07_root      cittamp06lx07           0     iSCSI
+	/vol/vol342/cittamp06lx08_root      cittamp06lx08           0     iSCSI
+	/vol/vol342/cittamp06lx09_root      cittamp06lx09           0     iSCSI
+	/vol/vol342/cittamp06lx10_root      cittamp06lx10           0     iSCSI
+
+Para garantir o boot sem maiores configurações recomenda-se que a LUN de boot seja a primeira LUN apresentada aos servidores (LUN0), conforme acima.
+
+Nessa instalaçáo foi utilizado o "kickstart" (em riofb02a:/admfiler/2a/1/unix/tftpboot/pxelinux.cfg/centos6_64_SwiftWriter), para a instalação da LUN "golden", modelo para as demais. É basicamente uma instalação mínima de CentOS 6.3 x86_64, com os pacotes e dependências do Openstack Swift, na versão empacotada com a release Essex do Openstack (1.4.8). Nessa LUN estão incluidas as configurações para os 5 iniciais nós do cluster, número mínimo de hosts recomendado para produção). Quando for necessário adicionar-se mais nós no cluster, pode-se clonar a LUN GOLDEN em uma nova LUN, criar um novo iGroup contendo o novo servidor, e mapear a LUN para esse recém criado igroup. Para informar o Swift sobre o novo nó, siga os procedimentos descritos em :ref:`procedimentos_de_mudanca`
 
 Os dois HDDs locais disponíveis nos servidores, foram integralmente particionados e formatados com o FS XFS, pela necessidade de Extended Attributes (XATTRS_), conforme sugerido na documentação do Swift, e montados no mount point default de consumo do Swift, com os parâmetros recomendados na documentação, tanto para criação quanto para a montagem: ::
 
-  Criação:
-  mkfs.xfs -i size=1024 /dev/sda1
-  mkfs.xfs -i size=1024 /dev/sdb1
+	  Criação:
+	  mkfs.xfs -i size=1024 /dev/sda1
+	  mkfs.xfs -i size=1024 /dev/sdb1
 
-  Montagem (/etc/fstab):
-  /dev/sda1 /srv/node/sda1 xfs noatime,nodiratime,nobarrier,logbufs=8 0 0
-  /dev/sdb1 /srv/node/sdb1 xfs noatime,nodiratime,nobarrier,logbufs=8 0 0
+	  Montagem (/etc/fstab):
+	  /dev/sda1 /srv/node/sda1 xfs noatime,nodiratime,nobarrier,logbufs=8 0 0
+	  /dev/sdb1 /srv/node/sdb1 xfs noatime,nodiratime,nobarrier,logbufs=8 0 0
 
 
 A disponibilidade dos dados é garantida por um esquema de réplicas, onde cada objeto é gravado em n-réplicas em zonas distintas, de modo a garantir a disponibilidade dos dados em caso de falha de até (n-replicas -1) zonas.
 
-Cada servidor de objetos é uma "Zona" para o swift. As zonas são domínios de falha que devem ser configuradas do modo a ter-se tanta independência de recursos quanto possível (racks distintos, alimentação elétrica distinta, etc). O cluster deve ser disposto de modo a minimizar os efeitos de uma falha que afete mais de um nó do custer ao mesmo tempo, sendo que a disponibilidade dos dados é garantida pelo número de réplicas configurado inicialmente,conforme já descrito.
+Cada servidor de objetos é uma "Zona" para o swift. As zonas são domínios de falha que devem ser configuradas do modo a ter-se tanta independência de recursos quanto possível (racks distintos, alimentação elétrica distinta, etc). O cluster deve ser disposto de modo a minimizar os efeitos de uma falha que afete mais de um nó do cluster ao mesmo tempo, sendo que a disponibilidade dos dados é garantida pelo número de réplicas configurado inicialmente,conforme já descrito.
+
+As réplicas são feitas por intermédio do protocolo rSync. Cada servidor de objetos tem configurado em seu super-server (xinetd) um servidor de rsync que disponibliza os HDDs de cada zona para receber réplicas das demais zonas. O rsync foi configurado segundo sugerido na documentação do swift:
 
 
+ */etc/xinetd.d/rsyncd.conf* ::
 
+	# default: off
+	# description: The rsync server is a good addition to an ftp server, as it \
+	#       allows crc checksumming etc.
+	service rsync
+	{
+		disable = no
+		flags           = IPv4
+		socket_type     = stream
+		wait            = no
+		user            = root
+		server          = /usr/bin/rsync
+		server_args     = --daemon
+		log_on_failure  += USERID
+	}
+
+ */etc/rsyncd.conf* ::
+
+	uid = swift
+	gid = swift
+	log file = /var/log/rsyncd.log
+	pid file = /var/run/rsyncd.pid
+	address = 192.168.33.xx
+
+	[account]
+	max connections = 2
+	path = /srv/node/
+	read only = false
+	lock file = /var/lock/account.lock
+
+	[container]
+	max connections = 2
+	path = /srv/node/
+	read only = false
+	lock file = /var/lock/container.lock
+
+	[object]
+	max connections = 2
+	path = /srv/node/
+	read only = false
+	lock file = /var/lock/object.lock
+
+REDE
+----
 As interfaces de rede dos servidores foram configuradas como a seguir:
 
 	*eth0* - Interface de acesso público (10.170.0.0/24 - DHCP)
 
 	*eth1* - Interface de acesso privado - interconexão entre os |OBJS| e os |PROX| (192.168.33.0/24 - Estatica em função do IP na eth0)
 
+
+
 ----------------
 **Proxy Nodes:**
 ----------------
+
+Os proxy-nodes são os responsáveis por receber as requisições clientes do Swift. Pode-se ter tantos proxy-nodes quantos necessários em função da demanda, balanceados por um VIP. Todo tráfego é HTTP/HTTPS. Para fins de testes, os proxy-nodes implementados no LAB Cumulus, são balanceados por um Varnish, com cacheamento default em 120 segundos para _todos_os_objetos_ servidos, indiscriminadamente, pela interface de estáticos. Essa configuração visa amortecer quaisquer picos de acesso principalmente via a interface de estáticos. Os acessos internos do Swift, via porta 8080, são apenas balanceados e nunca cacheados.
+
+
 
 
 -------------------
 Configurações Swift
 -------------------
 
+Cada cluster Swift deve ter um "Unique Identifier" (swift_hash_path_suffix), que o diferencie de outros clusters e que seja consistente entre os nós de cada cluster. Esse UUID deve ser armazenado no arquivo de configuração /etc/swift/swift.conf.
+
 .. compound::
 
-   */etc/swift/*
-	   *{object-server|container-server|account-server}* ::
+      */etc/swift/swift.conf:* ::
 
-		[DEFAULT]
-		bind_ip = 192.168.33.26  <- Endereço privado de interconexão do cluster
-		workers = 24             <- Número de threads = número de CPUs do host
+	[swift-hash]
+	# random unique string that can never change (DO NOT LOSE)
+	swift_hash_path_suffix =  d9fa0ad2ded1f0db
 
-		[pipeline:main]
-		pipeline = object-server <- (ou container-server, ou account-server)
 
-		[app:object-server]      <- (ou container-server, ou account-server)
-		use = egg:swift#object   <- (ou swift#container, ou swift#account)
 
-		[object-replicator]
+      */etc/swift/{object-server|container-server|account-server}:* ::
 
-		[object-updater]
+	[DEFAULT]
+	bind_ip = 192.168.33.26  <- Endereço privado de interconexão do cluster
+	workers = 24             <- Número de threads = número de CPUs do host
 
-		[object-auditor]
+	[pipeline:main]
+	pipeline = object-server <- (ou container-server, ou account-server)
+
+	[app:object-server]      <- (ou container-server, ou account-server)
+	use = egg:swift#object   <- (ou swift#container, ou swift#account)
+
+	[object-replicator]
+
+	[object-updater]
+
+	[object-auditor]
 
 
 --------------
@@ -101,14 +204,13 @@ Os servidores de objetos tiveram suas configurações de BIOS setadas para privi
 
 .. compound::
 
-     Os tunnings abaixo foram aplicados para o SO (sysctl): ::
+     Os tunnings abaixo foram aplicados para o SO (/etc/sysctl.conf): ::
 
 	net.ipv4.ip_forward = 0
 	net.ipv4.conf.default.rp_filter = 1
 	net.ipv4.conf.default.accept_source_route = 0
 	kernel.sysrq = 0
 	kernel.core_uses_pid = 1
-	net.ipv4.tcp_syncookies = 1
 	kernel.msgmnb = 65536
 	kernel.msgmax = 65536
 	kernel.shmmax = 68719476736
@@ -124,14 +226,16 @@ Os servidores de objetos tiveram suas configurações de BIOS setadas para privi
 	kernel.sem = 1000 32000 32 512
 	kernel.shmmax = 2147483648
 	net.ipv4.tcp_syncookies = 0
-	net.ipv4.tcp_max_syn_backlog = 8192
 	net.ipv4.conf.all.arp_ignore = 2
 	net.ipv4.conf.all.arp_announce = 2
 	net.ipv4.tcp_tw_recycle = 1
 	net.ipv4.tcp_tw_reuse = 1
-	net.ipv4.tcp_syncookies = 0
+	net.ipv4.tcp_syncookies = 0 			<- desligado nos Object Servers e ligado nos Proxy Servers
+	net.ipv4.tcp_max_syn_backlog = 8192
 
-------------------------
+
+.. _procedimentos_de_mudanca:
+
 Procedimentos de Mudança
 ------------------------
 
