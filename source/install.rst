@@ -16,14 +16,14 @@ O Swift foi instalado segundo a documentação em |DOCL|_. Os endpoints resultan
 
 As áreas de dados do Swift são designadas segundo os tenentes do Keystone. Cada "tenant" tem uma área discriminada pelo seu próprio UUID segundo a fórmula acima. Essas áreas podem ser divididas em "containers" (buckets, na terminologia AWS), e utilizadas para armazenamento de backups e conteúdo estático.
 
---------------------------
-**Object Storage Nodes:**
---------------------------
+---------------------
+Object Storage Nodes:
+---------------------
 
 Os Storage Nodes são os reais trabalhadores da infraestrutra do Swift. É neles que os dados de usuário e de configuração sáo armazenados e é neles que é garantida a redundância e disponibilidade dos dados.
 
-STORAGE
--------
+ARMAZENAMENTO
+-------------
 
 Visando dedicar todo o storage local para uso pelo Swift, os object nodes foram instalados com o root filesystem sediado em uma LUN iSCSI, servida, para a cloud de LAB, pelo Filer de desenvolvimento (riofd06). Essa LUN contendo a instalação inicial do nó foi clonado em outras 6 LUNs, uma para cada "Object Storage". As LUNs foram clonadas e mapeadas como a seguir, para os seus respectivos hosts:
 
@@ -117,7 +117,7 @@ As réplicas são feitas por intermédio do protocolo rSync. Cada servidor de ob
 	address = 192.168.33.xx
 
 	[account]
-	max connections = 2
+	max connections = 2                 <- Valor sugerido pela documentação.
 	path = /srv/node/
 	read only = false
 	lock file = /var/lock/account.lock
@@ -138,19 +138,19 @@ REDE
 ----
 As interfaces de rede dos servidores foram configuradas como a seguir:
 
-	*eth0* - Interface de acesso público (10.170.0.0/24 - DHCP)
-
-	*eth1* - Interface de acesso privado - interconexão entre os |OBJS| e os |PROX| (192.168.33.0/24 - Estatica em função do IP na eth0)
-
+ *eth0* - Interface de acesso público (10.170.0.0/24 - DHCP)
+ *eth1* - Interface de acesso privado - interconexão entre os |OBJS| e os |PROX| (192.168.33.0/24 - Estatica em função do IP na eth0)
 
 
-----------------
-**Proxy Nodes:**
-----------------
 
-Os proxy-nodes são os responsáveis por receber as requisições clientes do Swift. Pode-se ter tantos proxy-nodes quantos necessários em função da demanda, balanceados por um VIP. Todo tráfego é HTTP/HTTPS. Para fins de testes, os proxy-nodes implementados no LAB Cumulus, são balanceados por um Varnish, com cacheamento default em 120 segundos para _todos_os_objetos_ servidos, indiscriminadamente, pela interface de estáticos. Essa configuração visa amortecer quaisquer picos de acesso principalmente via a interface de estáticos. Os acessos internos do Swift, via porta 8080, são apenas balanceados e nunca cacheados.
+------------
+Proxy Nodes:
+------------
+pacotes: openstack-swift-essex-proxy-essex-1.4.8-b3000, memcached-1.4.4-3.el6.x86_64
 
+Os proxy-nodes são os responsáveis por receber as requisições clientes do Swift. Pode-se ter tantos proxy-nodes quantos necessários em função da demanda, balanceados por um VIP. Todo tráfego é HTTP/HTTPS. Para fins de testes, os proxy-nodes implementados no LAB Cumulus, são balanceados por um Varnish, com cacheamento default em 120 segundos para _todos_os_objetos_ servidos, indiscriminadamente, pela interface de estáticos. Essa configuração visa amortecer quaisquer picos de acesso via interface de estáticos. Os acessos internos do Swift, via porta 8080, são apenas balanceados e nunca cacheados (pipe).
 
+Para fins de cacheamento de meta-dados para uso interno, o Swift usa instâncias de "memcache" em cada um de seus nós proxy. Cada proxy deve ser configurado para "enxergar" os memcaches dos demais nós de modo a criar uma rede redundante de processos memcached.
 
 
 -------------------
@@ -168,8 +168,7 @@ Cada cluster Swift deve ter um "Unique Identifier" (swift_hash_path_suffix), que
 	swift_hash_path_suffix =  d9fa0ad2ded1f0db
 
 
-
-      */etc/swift/{object-server|container-server|account-server}:* ::
+      */etc/swift/{object-server.conf|container-server.conf|account-server.conf}:* ::
 
 	[DEFAULT]
 	bind_ip = 192.168.33.26  <- Endereço privado de interconexão do cluster
@@ -186,6 +185,76 @@ Cada cluster Swift deve ter um "Unique Identifier" (swift_hash_path_suffix), que
 	[object-updater]
 
 	[object-auditor]
+
+      */etc/swift/proxy-server.conf:* ::
+
+	[DEFAULT]
+	bind_port = 8080
+	user = swift
+	workers = 24 								<- Número de CPUs do servidor
+
+	[pipeline:main]
+	pipeline = catch_errors healthcheck cache swift3 s3token authtoken keystone staticweb proxy-server
+	[app:proxy-server]
+	use = egg:swift#proxy
+	allow_account_management = true
+	account_autocreate = true
+
+	[filter:keystone]
+	paste.filter_factory = keystone.middleware.swift_auth:filter_factory
+	operator_roles = admin, swiftoperator
+
+	[filter:cache]
+	use = egg:swift#memcache
+	memcache_servers = 10.170.0.31:11211 10.170.0.32:11211			<- Pool de memcacheds
+	set log_name = cache
+
+	[filter:catch_errors]
+	use = egg:swift#catch_errors
+
+	[filter:healthcheck]
+	use = egg:swift#healthcheck
+
+	[filter:authtoken]
+	paste.filter_factory = keystone.middleware.auth_token:filter_factory
+	delay_auth_decision = 1
+	service_protocol = http
+	service_port = 5000
+	service_host = keystone.cumulus.dev.globoi.com				<- Identity Server (Keystone)
+	auth_protocol = http
+	auth_port = 35357
+	auth_host = keystone.cumulus.dev.globoi.com
+	admin_tenant_name = service						<- Tenant de serviços
+	admin_user = swift                                     			<- Usuário do Swift no Keystone
+	admin_password = 7a533b68-abd8-45a1-97c7-2feeb0e76871   		<- Senha do Usuário de serviço Swift
+
+	[filter:staticweb]							<- Servidor de estáticos
+	use = egg:swift#staticweb
+	cache_timeout = 60
+	set log_name = staticweb
+	set log_facility = LOG_LOCAL0
+	set log_level = INFO
+	set access_log_name = staticweb
+	set access_log_facility = LOG_LOCAL0
+	set access_log_level = INFO
+
+	[filter:swift3]								<- Emulador de S3
+	use = egg:swift#swift3
+
+	[filter:s3token]							<- Autenticação por tokens para S3
+	paste.filter_factory = keystone.middleware.s3_token:filter_factory
+	auth_port = 35357
+	auth_host = keystone.cumulus.dev.globoi.com
+	auth_protocol = http
+
+
+      */etc/sysconfig/memcached:* ::
+
+	PORT="11211"
+	USER="memcached"
+	MAXCONN="1024"
+	CACHESIZE="2048"
+	OPTIONS=""
 
 
 --------------
