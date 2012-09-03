@@ -14,7 +14,7 @@ O Swift foi instalado segundo a documentação em |DOCL|_
 **Object Storage Nodes:**
 --------------------------
 
-Os object nodes foram instalados com o root filesystem sediado em uma LUN iSCSI, servida, para a cloud de LAB, pelo Filer de desenvolvimento (riofd06). Essa LUN contendo a instalação inicial do nó foi clonado em outras 6 LUNs, uma para cada "Object Storage". As LUNs foram clonadas e mapeadas como a seguir, para os seus respectivos hosts:
+Visando dedicar todo o storage local para uso pelo Swift, os object nodes foram instalados com o root filesystem sediado em uma LUN iSCSI, servida, para a cloud de LAB, pelo Filer de desenvolvimento (riofd06). Essa LUN contendo a instalação inicial do nó foi clonado em outras 6 LUNs, uma para cada "Object Storage". As LUNs foram clonadas e mapeadas como a seguir, para os seus respectivos hosts:
 
 LUN GOLDEN
 ----------
@@ -42,6 +42,11 @@ Os dois HDDs locais disponíveis nos servidores, foram integralmente particionad
   /dev/sdb1 /srv/node/sdb1 xfs noatime,nodiratime,nobarrier,logbufs=8 0 0
 
 
+A disponibilidade dos dados é garantida por um esquema de réplicas, onde cada objeto é gravado em n-réplicas em zonas distintas, de modo a garantir a disponibilidade dos dados em caso de falha de até (n-replicas -1) zonas.
+
+Cada servidor de objetos é uma "Zona" para o swift. As zonas são domínios de falha que devem ser configuradas do modo a ter-se tanta independência de recursos quanto possível (racks distintos, alimentação elétrica distinta, etc). O cluster deve ser disposto de modo a minimizar os efeitos de uma falha que afete mais de um nó do custer ao mesmo tempo, sendo que a disponibilidade dos dados é garantida pelo número de réplicas configurado inicialmente,conforme já descrito.
+
+
 
 As interfaces de rede dos servidores foram configuradas como a seguir:
 
@@ -60,60 +65,25 @@ Configurações Swift
 
 .. compound::
 
-   *object-server* ::
+   */etc/swift/*
+	   *{object-server|container-server|account-server}* ::
 
-	[DEFAULT]
-	bind_ip = 192.168.33.26
-	workers = 24
+		[DEFAULT]
+		bind_ip = 192.168.33.26  <- Endereço privado de interconexão do cluster
+		workers = 24             <- Número de threads = número de CPUs do host
 
-	[pipeline:main]
-	pipeline = object-server
+		[pipeline:main]
+		pipeline = object-server <- (ou container-server, ou account-server)
 
-	[app:object-server]
-	use = egg:swift#object
+		[app:object-server]      <- (ou container-server, ou account-server)
+		use = egg:swift#object   <- (ou swift#container, ou swift#account)
 
-	[object-replicator]
+		[object-replicator]
 
-	[object-updater]
+		[object-updater]
 
-	[object-auditor]
+		[object-auditor]
 
-
-*container-server* ::
-
-	[DEFAULT]
-	bind_ip = 192.168.33.26
-	workers = 24
-
-	[pipeline:main]
-	pipeline = container-server
-
-	[app:container-server]
-	use = egg:swift#container
-
-	[container-replicator]
-
-	[container-updater]
-
-	[container-auditor]
-
-*account-server* ::
-
-	[DEFAULT]
-	bind_ip = 192.168.33.26
-	workers = 24
-
-	[pipeline:main]
-	pipeline = account-server
-
-	[app:account-server]
-	use = egg:swift#account
-
-	[account-replicator]
-
-	[account-auditor]
-
-	[account-reaper]
 
 --------------
 Tunnings do SO
@@ -160,3 +130,17 @@ Os servidores de objetos tiveram suas configurações de BIOS setadas para privi
 	net.ipv4.tcp_tw_recycle = 1
 	net.ipv4.tcp_tw_reuse = 1
 	net.ipv4.tcp_syncookies = 0
+
+------------------------
+Procedimentos de Mudança
+------------------------
+
+
+*Adição de discos aos storage nodes*
+
+*Adição de nodes ao cluster*
+
+*Remoção de discos dos storage nodes*
+
+*Remoção de nodes do cluster*
+
