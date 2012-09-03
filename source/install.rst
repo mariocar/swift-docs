@@ -316,18 +316,3 @@ Logging:
 blah blah
 
 
-
-.. _procedimentos_de_mudanca:
-
-Procedimentos de Mudança
-------------------------
-
-
-*Adição de discos aos storage nodes*
-
-*Adição de nodes ao cluster*
-
-*Remoção de discos dos storage nodes*
-
-*Remoção de nodes do cluster*
-
