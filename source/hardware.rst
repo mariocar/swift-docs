@@ -35,7 +35,7 @@ Hardware Utilizado
 
 .. include:: etc/swift.conf
    :start-line: 0
-   :end-line: 1
+   :end-line: 0
 
 .. epigraph::
 

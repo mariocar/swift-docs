@@ -13,6 +13,7 @@ Conteúdo:
 
    hardware
    install
+   admin
 
 Indices and tables
 ==================
