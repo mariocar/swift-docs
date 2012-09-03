@@ -57,8 +57,6 @@ As LUNs foram mapeadas para "igroups" (agrupamento de initiators iSCSI, no filer
     cittamp06lx11 (iSCSI) (ostype: linux):
         iqn.1994-05.com.redhat:cittamp06lx11 (logged in on: vif1)
 
-        LUN GOLDEN ::
-
 Status final das LUNs após o mapeamento: ::
 
 	LUN path                            Mapped to          LUN ID  Protocol
@@ -253,7 +251,7 @@ Cada cluster Swift deve ter um "Unique Identifier" (swift_hash_path_suffix), que
 	PORT="11211"
 	USER="memcached"
 	MAXCONN="1024"
-	CACHESIZE="2048"
+	CACHESIZE="4096"							<- Trade-off entre memória no servidor e acesso aos metadados.
 	OPTIONS=""
 
 
