@@ -19,8 +19,16 @@ Monitoração do serviço:
 Procedimentos de Mudança:
 -------------------------
 
+O Swift possui mecanismos de escalabilidade que permitem que sejam adicionados mais discos aos atuais servidores de objetos, ou mesmo mais servidores ao cluster atual. Esses procedimentos são bem simples, embora cautela seja recomendada durante sua condução para minimizar os impactos de performance que tais atividades impõem no cluster, a saber:
 
 *Adição de discos aos storage nodes*
+
+Para adicionar-se mais discos ou aumentar a capacidade dos discos nos nodes de storage, é preciso recriar os arquivos de configuração e rebalancear-se o cluster, tal e qual feito na instalação. Como a adição/remoção de zones implica na redistribuição de partições pelo cluster, é aconselhável que esse procedimento seja feito paulatinamente, através do progressivo aumento do peso (weight) do novo/antigo dispositivo.
+
+Ex. Adição de um disco de 3TB.
+
+
+
 
 *Adição de nodes ao cluster*
 

@@ -9,6 +9,9 @@
 Instalação do Swift
 ===================
 
+O Swift é um sistema de armazenamento distribuido e altamente redundante, projetado para atender uma única Região (links de baixa latência entre os servidores do Swift).  O cluster do Swift conta com dois tipos de nó (nodes), os |OBJS| e os |PROX|. A funcao dos primeiros é o armazenamento dos bancos de dados de configuração do Swift, metadados, contas de usuário e objetos propriamente ditos, enquanto os nós do segundo tipo prestam para o encaminhamento das requisições e serviço dos dados do cluster.
+
+
 O Swift foi instalado segundo a documentação em |DOCL|_. Os endpoints resultantes dessa instalação são: ::
 
 	https://swift.cumulus.dev.globoi.com/v1/AUTH_<tenant_id>/ 	(Interface de estáticos)
@@ -131,6 +134,28 @@ As réplicas são feitas por intermédio do protocolo rSync. Cada servidor de ob
 	path = /srv/node/
 	read only = false
 	lock file = /var/lock/object.lock
+
+Uma vez configurados os servidores (object, account e container), precisamos definir e informar ao Swift como particionar os discos, quantas réplicas fazer de cada objeto, etc. Essas configurações devem ser feitas com o utilitário "swift-ring-builder". ::
+
+	$ cd /etc/swift
+	$ swift-ring-builder account.builder   create <PARTITION_POWER> <REPLICAS> <MOVE_RESTRICTION_H>
+	$ swift-ring-builder container.builder create <PARTITION_POWER> <REPLICAS> <MOVE_RESTRICTION_H>
+	$ swift-ring-builder object.builder    create <PARTITION_POWER> <REPLICAS> <MOVE_RESTRICTION_H>
+
+	$ swift-ring-builder object.builder    add z<ZONE>-<STORAGE_LOCAL_NET_IP>:6000/<DEVICE> <DISK_SIZE_GB>
+	$ swift-ring-builder container.builder add z<ZONE>-<STORAGE_LOCAL_NET_IP>:6001/<DEVICE> <DISK_SIZE_GB>
+	$ swift-ring-builder account.builder   add z<ZONE>-<STORAGE_LOCAL_NET_IP>:6002/<DEVICE> <DISK_SIZE_GB>
+
+	$ swift-ring-builder account.builder
+
+        PARTITION_POWER: 2^<PARTITION_POWER> = tamanho aproximado da partição.
+	REPLICAS: número de réplicas que cada objeto terá no cluster.
+        MOVE_RESTRICTION_H: número de horas a restringir que uma partição seja movida mais de uma vez.
+        ZONE: número sequencial da zona.
+        STORAGE_LOCAL_NET_IP: IP na rede de interconexão de baixa latência entres os nós.
+        DEVICE: label que identifica o disco na árvore de montagem '/srv/node'.
+        DISK_SIZE_GB: peso do disco, convencionado no número de GB do disco. 
+
 
 REDE
 ----
