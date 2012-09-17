@@ -135,6 +135,11 @@ As réplicas são feitas por intermédio do protocolo rSync. Cada servidor de ob
 	read only = false
 	lock file = /var/lock/object.lock
 
+.. _criacao_dos_rings:
+
+Criacao dos rings
+"""""""""""""""""
+
 Uma vez configurados os servidores (object, account e container), precisamos definir e informar ao Swift como particionar os discos, quantas réplicas fazer de cada objeto, etc. Essas configurações devem ser feitas com o utilitário "swift-ring-builder". ::
 
 	$ cd /etc/swift
