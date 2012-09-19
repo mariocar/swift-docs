@@ -7,7 +7,7 @@
 .. |DOCL| replace:: Swift documentation
 
 Instalação do Swift
-===================
+###################
 
 O Swift é um sistema de armazenamento distribuido e altamente redundante, projetado para atender uma única Região (links de baixa latência entre os servidores do Swift).  O cluster do Swift conta com dois tipos de nó (nodes), os |OBJS| e os |PROX|. A funcao dos primeiros é o armazenamento dos bancos de dados de configuração do Swift, metadados, contas de usuário e objetos propriamente ditos, enquanto os nós do segundo tipo prestam para o encaminhamento das requisições e serviço dos dados do cluster.
 
@@ -19,14 +19,13 @@ O Swift foi instalado segundo a documentação em |DOCL|_. Os endpoints resultan
 
 As áreas de dados do Swift são designadas segundo os tenentes do Keystone. Cada "tenant" tem uma área discriminada pelo seu próprio UUID segundo a fórmula acima. Essas áreas podem ser divididas em "containers" (buckets, na terminologia AWS), e utilizadas para armazenamento de backups e conteúdo estático.
 
----------------------
 Object Storage Nodes:
----------------------
+*********************
 
 Os Storage Nodes são os reais trabalhadores da infraestrutra do Swift. É neles que os dados de usuário e de configuração sáo armazenados e é neles que é garantida a redundância e disponibilidade dos dados.
 
 ARMAZENAMENTO
--------------
+=============
 
 Visando dedicar todo o storage local para uso pelo Swift, os object nodes foram instalados com o root filesystem sediado em uma LUN iSCSI, servida, para a cloud de LAB, pelo Filer de desenvolvimento (riofd06). Essa LUN contendo a instalação inicial do nó foi clonado em outras 6 LUNs, uma para cada "Object Storage". As LUNs foram clonadas e mapeadas como a seguir, para os seus respectivos hosts:
 
@@ -137,8 +136,8 @@ As réplicas são feitas por intermédio do protocolo rSync. Cada servidor de ob
 
 .. _criacao_dos_rings:
 
-Criacao dos rings
-"""""""""""""""""
+Criacao dos rings:
+------------------
 
 Uma vez configurados os servidores (object, account e container), precisamos definir e informar ao Swift como particionar os discos, quantas réplicas fazer de cada objeto, etc. Essas configurações devem ser feitas com o utilitário "swift-ring-builder". ::
 
@@ -163,52 +162,51 @@ Uma vez configurados os servidores (object, account e container), precisamos def
 
 
 REDE
-----
+====
+
 As interfaces de rede dos servidores foram configuradas como a seguir:
 
- *eth0* - Interface de acesso público (10.170.0.0/24 - DHCP)
- *eth1* - Interface de acesso privado - interconexão entre os |OBJS| e os |PROX| (192.168.33.0/24 - Estatica em função do IP na eth0)
+*eth0* - Interface de acesso público (10.170.0.0/24 - DHCP)
+
+*eth1* - Interface de acesso privado - interconexão entre os |OBJS| e os |PROX| (192.168.33.0/24 - Estatica em função do IP na eth0)
 
 
 
-------------
+
 Proxy Nodes:
-------------
+************
+
 pacotes: openstack-swift-essex-proxy-essex-1.4.8-b3000, memcached-1.4.4-3.el6.x86_64
 
 Descrição:
-----------
+==========
 
 Os proxy-nodes são os responsáveis por receber as requisições clientes do Swift. Pode-se ter tantos proxy-nodes quantos necessários em função da demanda, balanceados por um VIP. Todo tráfego é HTTP/HTTPS. 
 
 Cacheamento automatico de estáticos:
-------------------------------------
+====================================
 
 Para fins de testes, os proxy-nodes implementados no LAB Cumulus, são balanceados por um Varnish, com cacheamento default em 120 segundos para _todos_os_objetos_ servidos, indiscriminadamente, pela interface de estáticos. Essa configuração visa amortecer quaisquer picos de acesso via interface de estáticos. Os acessos internos do Swift, via porta 8080, são apenas balanceados e nunca cacheados (pipe).
 
 Cacheamento de metadados:
--------------------------
+=========================
 Para fins de cacheamento de meta-dados para uso interno, o Swift usa instâncias de "memcache" em cada um de seus nós proxy. Cada proxy deve ser configurado para "enxergar" os memcaches dos demais nós de modo a criar uma rede redundante de processos memcached.
 
 
--------------------
 Configurações Swift
--------------------
+###################
 
 Cada cluster Swift deve ter um "Unique Identifier" (swift_hash_path_suffix), que o diferencie de outros clusters e que seja consistente entre os nós de cada cluster. Esse UUID deve ser armazenado no arquivo de configuração /etc/swift/swift.conf.
 
 .. compound::
 
-      */etc/swift/swift.conf:* ::
+ */etc/swift/swift.conf:* 
 
-	[swift-hash]
-	# random unique string that can never change (DO NOT LOSE)
-	swift_hash_path_suffix =  d9fa0ad2ded1f0db
+.. literalinclude:: etc/swift.conf
 
+*/etc/swift/{object-server.conf|container-server.conf|account-server.conf}:* ::
 
-      */etc/swift/{object-server.conf|container-server.conf|account-server.conf}:* ::
-
-	[DEFAULT]
+        [DEFAULT]
 	bind_ip = 192.168.33.26  <- Endereço privado de interconexão do cluster
 	workers = 24             <- Número de threads = número de CPUs do host
 
@@ -224,79 +222,18 @@ Cada cluster Swift deve ter um "Unique Identifier" (swift_hash_path_suffix), que
 
 	[object-auditor]
 
-      */etc/swift/proxy-server.conf:* ::
 
-	[DEFAULT]
-	bind_port = 8080
-	user = swift
-	workers = 24 								<- Número de CPUs do servidor
+*/etc/swift/proxy-server.conf:*
 
-	[pipeline:main]
-	pipeline = catch_errors healthcheck cache swift3 s3token authtoken keystone staticweb proxy-server
-	[app:proxy-server]
-	use = egg:swift#proxy
-	allow_account_management = true
-	account_autocreate = true
-
-	[filter:keystone]
-	paste.filter_factory = keystone.middleware.swift_auth:filter_factory
-	operator_roles = admin, swiftoperator
-
-	[filter:cache]
-	use = egg:swift#memcache
-	memcache_servers = 10.170.0.31:11211 10.170.0.32:11211			<- Pool de memcacheds
-	set log_name = cache
-
-	[filter:catch_errors]
-	use = egg:swift#catch_errors
-
-	[filter:healthcheck]
-	use = egg:swift#healthcheck
-
-	[filter:authtoken]
-	paste.filter_factory = keystone.middleware.auth_token:filter_factory
-	delay_auth_decision = 1
-	service_protocol = http
-	service_port = 5000
-	service_host = keystone.cumulus.dev.globoi.com				<- Identity Server (Keystone)
-	auth_protocol = http
-	auth_port = 35357
-	auth_host = keystone.cumulus.dev.globoi.com
-	admin_tenant_name = service						<- Tenant de serviços
-	admin_user = swift                                     			<- Usuário do Swift no Keystone
-	admin_password = 7a533b68-abd8-45a1-97c7-2feeb0e76871   		<- Senha do Usuário de serviço Swift
-
-	[filter:staticweb]							<- Servidor de estáticos
-	use = egg:swift#staticweb
-	cache_timeout = 60
-	set log_name = staticweb
-	set log_facility = LOG_LOCAL0
-	set log_level = INFO
-	set access_log_name = staticweb
-	set access_log_facility = LOG_LOCAL0
-	set access_log_level = INFO
-
-	[filter:swift3]								<- Emulador de S3
-	use = egg:swift#swift3
-
-	[filter:s3token]							<- Autenticação por tokens para S3
-	paste.filter_factory = keystone.middleware.s3_token:filter_factory
-	auth_port = 35357
-	auth_host = keystone.cumulus.dev.globoi.com
-	auth_protocol = http
+.. literalinclude:: etc/prx/proxy-server.conf
 
 
-      */etc/sysconfig/memcached:* ::
+*/etc/sysconfig/memcached:*
 
-	PORT="11211"
-	USER="memcached"
-	MAXCONN="1024"
-	CACHESIZE="4096"							<- Trade-off entre memória no servidor e acesso aos metadados.
-	OPTIONS=""
+.. literalinclude:: etc/prx/memcached
 
---------------
 Tunnings do SO
---------------
+##############
 
 	Visando privilegiar o throughput de I/O nos servidores na função de "object writers", alguns tunning foram feitos no ambiente a saber:
 
@@ -308,41 +245,15 @@ Os servidores de objetos tiveram suas configurações de BIOS setadas para privi
 	
 *Software*
 
-.. compound::
+Os tunnings abaixo foram aplicados para o SO (/etc/sysctl.conf):
 
-     Os tunnings abaixo foram aplicados para o SO (/etc/sysctl.conf): ::
+.. literalinclude:: etc/obj/sysctl.conf
 
-	net.ipv4.ip_forward = 0
-	net.ipv4.conf.default.rp_filter = 1
-	net.ipv4.conf.default.accept_source_route = 0
-	kernel.sysrq = 0
-	kernel.core_uses_pid = 1
-	kernel.msgmnb = 65536
-	kernel.msgmax = 65536
-	kernel.shmmax = 68719476736
-	kernel.shmall = 4294967296
-	net.ipv4.tcp_keepalive_time = 20
-	net.ipv4.tcp_fin_timeout = 40
-	net.ipv4.tcp_keepalive_intvl = 40
-	net.ipv4.tcp_retries2 = 3
-	net.ipv4.tcp_syn_retries = 2
-	net.ipv4.ip_local_port_range = 1024 65000
-	fs.file-max = 81920
-	kernel.msgmni = 1024
-	kernel.sem = 1000 32000 32 512
-	kernel.shmmax = 2147483648
-	net.ipv4.conf.all.arp_ignore = 2
-	net.ipv4.conf.all.arp_announce = 2
-	net.ipv4.tcp_tw_recycle = 1
-	net.ipv4.tcp_tw_reuse = 1
-	net.ipv4.tcp_syncookies = 0 			<- desligado nos Object Servers e ligado nos Proxy Servers
-	net.ipv4.tcp_max_syn_backlog = 8192
+O parametro tcp_syscookies foi mantido habilitado nos nós de proxy.
 
 .. _logging:
 
 Logging:
---------
+########
 
-blah blah
-
-
+Os processos do Swift enviam os logs, por default, para o rsyslog local. Para garantir a consolidação dos logs, os nós |OBJS| foram configurados para enviar seus logs para o lognit, como a seguir:
