@@ -204,11 +204,18 @@ Cada cluster Swift deve ter um "Unique Identifier" (swift_hash_path_suffix), que
 
 .. literalinclude:: etc/swift.conf
 
+OBS.: O hash acima pode ser facilmente regerado com o oneliner :  
+
+.. code-block:: bash
+
+   od -t x8 -N 8 -A n \< /dev/random
+
 */etc/swift/{object-server.conf|container-server.conf|account-server.conf}:* ::
 
         [DEFAULT]
-	bind_ip = 192.168.33.26  <- Endereço privado de interconexão do cluster
-	workers = 24             <- Número de threads = número de CPUs do host
+	bind_ip = 192.168.33.26    <- Endereço privado de interconexão do cluster
+	workers = 24               <- Número de threads = número de CPUs do host
+	log_facility = LOG_LOCAL3  <- Facility padrão do lognit para Python
 
 	[pipeline:main]
 	pipeline = object-server <- (ou container-server, ou account-server)
@@ -242,10 +249,14 @@ Tunnings do SO
 Os servidores de objetos tiveram suas configurações de BIOS setadas para privilegiar I/O em detrimento de Acesso de memória::
 
   Advanced Options - Advanced Performance Tunning Options - QPI Bandwidth Optimization(RTID) - Optimized for I/O (32-16-40) \\ Balanced (32-24-32)
+
+Esses tunnings são específicos para o Hardware utilizado na solução de POC no Laboratório - HP ProLiant BL460c G6. Outros tunnings, com as mesmas finalidades, devem ser prospectados nos novos modelos adquiridos para o Swift.
 	
 *Software*
 
-Os tunnings abaixo foram aplicados para o SO (/etc/sysctl.conf):
+Os tunnings abaixo foram aplicados para o SO :
+
+*/etc/sysctl.conf*
 
 .. literalinclude:: etc/obj/sysctl.conf
 
@@ -257,3 +268,56 @@ Logging:
 ########
 
 Os processos do Swift enviam os logs, por default, para o rsyslog local. Para garantir a consolidação dos logs, os nós |OBJS| foram configurados para enviar seus logs para o lognit, como a seguir:
+
+*rsyslog.conf*
+
+.. literalinclude:: etc/rsyslog.conf
+
+
+Checks de pos-instalação:
+#########################
+
+Além da verificação dos logs, minutos após a instalação, é necessária a verificação do correto funcionamento da API REST.
+
+Validação
+*********
+
+Para validar a correta instalação de um cluster de Swift, basta que, após configuradas as variáveis de ambiente de autenticação: ::
+
+	$ export OS_USERNAME=login
+	$ export OS_PASSWORD=senha
+	$ export OS_AUTH_URL=http://keystone.dominio:5000/v2.0
+
+	$ swift stat
+	   Account: AUTH_uuid_do_tenant
+	Containers: 0
+	   Objects: 0
+	     Bytes: 0
+	Accept-Ranges: bytes
+	X-Trans-Id: tx010d347fcf634e23925e17d0967f4ed0
+
+Validação de upload/Criação do arquivo de healthcheck
+*****************************************************
+
+Como uma primeira ação administrativa, cria-se, sob o tenant do adminstrador, um container com o nome "healthcheck", que será usado na monitoração do servico. Para que isso seja possível, além de criar o container precisaremos setar uma ACL básica que permita o accesso ao recurso pela monitoração: ::
+
+	$ swift post -r '.r:\*'  healthcheck
+
+	$ swift post -m 'web-listings: true' healthcheck
+
+	$ echo OK > index.html
+
+	$ swift upload healthcheck index.html
+
+	$ curl -I http://swift.cumulus.dev.globoi.com:8080/v1/AUTH_uuid_do_tenant/healthcheck/index.html
+	HTTP/1.1 200 OK
+	Last-Modified: Wed, 19 Sep 2012 20:10:50 GMT
+	Etag: d36f8f9425c4a8000ad9c4a97185aca5
+	X-Object-Meta-Mtime: 1348085441.15
+	Accept-Ranges: bytes
+	Content-Length: 3
+	Content-Type: text/html
+	X-Trans-Id: tx911b480689a645bcb097940cbb20e666
+	Date: Thu, 20 Sep 2012 12:07:45 GMT
+
+

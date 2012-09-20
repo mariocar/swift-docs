@@ -14,6 +14,10 @@ Administração do Serviço Swift
 Monitoração do serviço:
 ***********************
 
+O swift possui os seguintes endpoints que devem ser monitorados até nível 7:
+
+http://swift.domain.name:8080 <- 
+
 .. _procedimentos_de_mudanca:
 
 Procedimentos de Mudança:
