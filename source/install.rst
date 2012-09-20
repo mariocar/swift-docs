@@ -141,16 +141,16 @@ Criacao dos rings:
 
 Uma vez configurados os servidores (object, account e container), precisamos definir e informar ao Swift como particionar os discos, quantas réplicas fazer de cada objeto, etc. Essas configurações devem ser feitas com o utilitário "swift-ring-builder". ::
 
-	$ cd /etc/swift
-	$ swift-ring-builder account.builder   create <PARTITION_POWER> <REPLICAS> <MOVE_RESTRICTION_H>
-	$ swift-ring-builder container.builder create <PARTITION_POWER> <REPLICAS> <MOVE_RESTRICTION_H>
-	$ swift-ring-builder object.builder    create <PARTITION_POWER> <REPLICAS> <MOVE_RESTRICTION_H>
+	node-1$ cd /etc/swift
+	node-1$ swift-ring-builder account.builder   create <PARTITION_POWER> <REPLICAS> <MOVE_RESTRICTION_H>
+	node-1$ swift-ring-builder container.builder create <PARTITION_POWER> <REPLICAS> <MOVE_RESTRICTION_H>
+	node-1$ swift-ring-builder object.builder    create <PARTITION_POWER> <REPLICAS> <MOVE_RESTRICTION_H>
 
-	$ swift-ring-builder object.builder    add z<ZONE>-<STORAGE_LOCAL_NET_IP>:6000/<DEVICE> <DISK_SIZE_GB>
-	$ swift-ring-builder container.builder add z<ZONE>-<STORAGE_LOCAL_NET_IP>:6001/<DEVICE> <DISK_SIZE_GB>
-	$ swift-ring-builder account.builder   add z<ZONE>-<STORAGE_LOCAL_NET_IP>:6002/<DEVICE> <DISK_SIZE_GB>
+	node-1$ swift-ring-builder object.builder    add z<ZONE>-<STORAGE_LOCAL_NET_IP>:6000/<DEVICE> <DISK_SIZE_GB>
+	node-1$ swift-ring-builder container.builder add z<ZONE>-<STORAGE_LOCAL_NET_IP>:6001/<DEVICE> <DISK_SIZE_GB>
+	node-1$ swift-ring-builder account.builder   add z<ZONE>-<STORAGE_LOCAL_NET_IP>:6002/<DEVICE> <DISK_SIZE_GB>
 
-	$ swift-ring-builder account.builder
+	node-1$ swift-ring-builder account.builder
 
         PARTITION_POWER: 2^<PARTITION_POWER> = tamanho aproximado da partição.
 	REPLICAS: número de réplicas que cada objeto terá no cluster.
@@ -273,6 +273,7 @@ Os processos do Swift enviam os logs, por default, para o rsyslog local. Para ga
 
 .. literalinclude:: etc/rsyslog.conf
 
+.. _procedimentos_de_pos_instalacao:
 
 Checks de pos-instalação:
 #########################
@@ -284,11 +285,11 @@ Validação
 
 Para validar a correta instalação de um cluster de Swift, basta que, após configuradas as variáveis de ambiente de autenticação: ::
 
-	$ export OS_USERNAME=login
-	$ export OS_PASSWORD=senha
-	$ export OS_AUTH_URL=http://keystone.dominio:5000/v2.0
+	node-1$ export OS_USERNAME=login
+	node-1$ export OS_PASSWORD=senha
+	node-1$ export OS_AUTH_URL=http://keystone.dominio:5000/v2.0
 
-	$ swift stat
+	node-1$ swift stat
 	   Account: AUTH_uuid_do_tenant
 	Containers: 0
 	   Objects: 0
@@ -301,15 +302,15 @@ Validação de upload/Criação do arquivo de healthcheck
 
 Como uma primeira ação administrativa, cria-se, sob o tenant do adminstrador, um container com o nome "healthcheck", que será usado na monitoração do servico. Para que isso seja possível, além de criar o container precisaremos setar uma ACL básica que permita o accesso ao recurso pela monitoração: ::
 
-	$ swift post -r '.r:\*'  healthcheck
+	node-1$ swift post -r '.r:\*'  healthcheck
 
-	$ swift post -m 'web-listings: true' healthcheck
+	node-1$ swift post -m 'web-listings: true' healthcheck
 
-	$ echo OK > index.html
+	node-1$ echo OK > index.html
 
-	$ swift upload healthcheck index.html
+	node-1$ swift upload healthcheck index.html
 
-	$ curl -I http://swift.cumulus.dev.globoi.com:8080/v1/AUTH_uuid_do_tenant/healthcheck/index.html
+	node-1$ curl -I http://swift.cumulus.dev.globoi.com:8080/v1/AUTH_uuid_do_tenant/healthcheck/index.html
 	HTTP/1.1 200 OK
 	Last-Modified: Wed, 19 Sep 2012 20:10:50 GMT
 	Etag: d36f8f9425c4a8000ad9c4a97185aca5

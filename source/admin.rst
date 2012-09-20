@@ -14,9 +14,19 @@ Administração do Serviço Swift
 Monitoração do serviço:
 ***********************
 
-O swift possui os seguintes endpoints que devem ser monitorados até nível 7:
+Caso os :ref:`procedimentos_de_pos_instalacao` tenham sido observados, o Swift terá no mínimo os seguintes pontos de monitoraçao:
 
-http://swift.domain.name:8080 <- 
+*Interface principal da API REST*
+
+Todas os endpoints devem retornar 200 OK: ::
+
+	http://swift.cumulus.dev.globoi.com:8080/v1/AUTH_uuid_do_tenant/healthcheck/index.html
+
+	http://swift.cumulus.dev.globoi.com/v1/AUTH_uuid_do_tenant/healthcheck/index.html
+
+	http://swift.cumulus.dev.globoi.com/admin/healthcheck/index.html
+
+
 
 .. _procedimentos_de_mudanca:
 
@@ -73,4 +83,12 @@ A adição de um novo nó de storage ao cluster também se dá pela reconfigura�
 Procedimentos de Recuperação de desastres:
 ******************************************
 
-blah blah blah
+Falha de um ou mais |OBJS| ::
+=============================
+
+ blah blah
+
+Falha de um ou mais |PROX| ::
+==================
+
+ blah blah
